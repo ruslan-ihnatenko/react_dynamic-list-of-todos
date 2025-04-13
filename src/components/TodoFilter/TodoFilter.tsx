@@ -3,11 +3,15 @@ import React from 'react';
 type Props = {
   onFilterState?: (filterState: boolean | null) => void;
   onQueryChange?: (query: string) => void;
+  query: string;
+  onReset?: () => void;
 };
 
 export const TodoFilter: React.FC<Props> = ({
   onFilterState,
   onQueryChange,
+  query,
+  onReset,
 }) => {
   const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -37,11 +41,13 @@ export const TodoFilter: React.FC<Props> = ({
 
       <p className="control is-expanded has-icons-left has-icons-right">
         <input
+          id="query"
           data-cy="searchInput"
           type="text"
           className="input"
           placeholder="Search..."
           onChange={event => onQueryChange?.(event.target.value)}
+          value={query}
         />
         <span className="icon is-left">
           <i className="fas fa-magnifying-glass" />
@@ -49,11 +55,14 @@ export const TodoFilter: React.FC<Props> = ({
 
         <span className="icon is-right" style={{ pointerEvents: 'all' }}>
           {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-          <button
-            data-cy="clearSearchButton"
-            type="button"
-            className="delete"
-          />
+          {query && (
+            <button
+              data-cy="clearSearchButton"
+              type="button"
+              className="delete"
+              onClick={onReset}
+            />
+          )}
         </span>
       </p>
     </form>

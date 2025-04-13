@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 
 type Props = {
   todos: Todo[];
-  onToDoSelect: (todo: Todo) => void;
+  selectedToDo: Todo | null;
+  onFocus: (todo: Todo | null) => void;
 };
 
-export const TodoList: React.FC<Props> = ({ todos, onToDoSelect }) => {
-  const [selectedTodoId, setSelectedTodoId] = useState<number | null>(null);
+export const TodoList: React.FC<Props> = ({
+  todos,
+  selectedToDo = null,
+  onFocus,
+}) => {
+  const [selectedTodoId, setSelectedTodoId] = useState<number | null>(
+    selectedToDo?.id || null,
+  );
+
+  useEffect(() => {
+    setSelectedTodoId(selectedToDo?.id || null);
+  }, [selectedToDo]);
 
   const handleToggleSelect = (todo: Todo) => {
-    setSelectedTodoId(prevId => (prevId === todo.id ? null : todo.id));
-    onToDoSelect(todo);
+    const isSelected = selectedTodoId === todo.id;
+
+    setSelectedTodoId(isSelected ? null : todo.id);
+    onFocus(isSelected ? null : todo); // Pass null if unselected
   };
 
   return (
@@ -27,7 +40,7 @@ export const TodoList: React.FC<Props> = ({ todos, onToDoSelect }) => {
               </span>
             </th>
             <th>Title</th>
-            <th> </th>
+            <th>V</th>
           </tr>
         </thead>
 
@@ -36,7 +49,8 @@ export const TodoList: React.FC<Props> = ({ todos, onToDoSelect }) => {
             <tr
               data-cy="todo"
               className={classNames({
-                'has-background-info-light': selectedTodoId === todo.id,
+                //'has-background-info-light': selectedTodoId !== todo.id,
+                'has-background-light': selectedTodoId === todo.id, // Unselected color
               })}
               key={todo.id}
             >

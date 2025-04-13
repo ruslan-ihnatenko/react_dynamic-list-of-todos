@@ -6,30 +6,36 @@ import { User } from '../../types/User';
 
 type Props = {
   todo: Todo | null;
-  onWindowClose: (obj: null) => void;
+  onFocus: (todo: Todo | null) => void;
 };
 
-export const TodoModal: React.FC<Props> = ({ todo, onWindowClose }) => {
+export const TodoModal: React.FC<Props> = ({ todo, onFocus }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
+
     if (todo?.userId !== undefined) {
-      getUser(todo.userId).then(fetchedUser => setUser(fetchedUser));
+      getUser(todo.userId)
+        .then(fetchedUser => setUser(fetchedUser))
+        .finally(() => setLoading(false));
     } else {
       setUser(null);
+      setLoading(false);
     }
-  }, [todo, user]);
+  }, [todo]);
 
   const reset = () => {
     setUser(null);
-    onWindowClose(null);
+    onFocus(null);
   };
 
   return (
     <div className="modal is-active" data-cy="modal">
       <div className="modal-background" />
 
-      {!todo ? (
+      {loading ? (
         <Loader />
       ) : (
         <div className="modal-card">
@@ -38,7 +44,7 @@ export const TodoModal: React.FC<Props> = ({ todo, onWindowClose }) => {
               className="modal-card-title has-text-weight-medium"
               data-cy="modal-header"
             >
-              Todo #{todo.id}
+              Todo #{todo?.id || '###'}
             </div>
 
             {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
@@ -52,11 +58,11 @@ export const TodoModal: React.FC<Props> = ({ todo, onWindowClose }) => {
 
           <div className="modal-card-body">
             <p className="block" data-cy="modal-title">
-              {todo.title}
+              {todo?.title}
             </p>
 
             <p className="block" data-cy="modal-user">
-              {todo.completed ? (
+              {todo?.completed ? (
                 <strong className="has-text-success">Done</strong>
               ) : (
                 <strong className="has-text-danger">Planned</strong>
@@ -67,7 +73,8 @@ export const TodoModal: React.FC<Props> = ({ todo, onWindowClose }) => {
                 <a href={`mailto:${user.email}`}>{user.name}</a>
               ) : (
                 'Unknown User'
-              )}{' '}
+              )}
+              {''}
             </p>
           </div>
         </div>

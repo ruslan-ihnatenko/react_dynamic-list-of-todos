@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 
@@ -16,7 +16,7 @@ interface FilterOptions {
 }
 
 function getPreparedToDosList(
-  todos: Todo[],
+  todos: Todo[] | [],
   { query, filterState }: FilterOptions,
 ) {
   let preparedToDos = todos;
@@ -29,14 +29,16 @@ function getPreparedToDosList(
   }
 
   if (filterState !== null) {
-    preparedToDos = todos.filter(todo => todo.completed === filterState);
+    preparedToDos = preparedToDos.filter(
+      todo => todo.completed === filterState,
+    );
   }
 
   return preparedToDos;
 }
 
 export const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>();
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
@@ -51,9 +53,17 @@ export const App: React.FC = () => {
         getPreparedToDosList(fetchedTodos, { query, filterState }),
       )
       .then(preparedTodos => setTodos(preparedTodos))
-      .catch(() => setErrorMessage('Try again later'))
+      .catch(() => {
+        setErrorMessage('Try again later');
+        // eslint-disable-next-line no-console
+        console.error(errorMessage);
+      })
       .finally(() => setLoading(false));
-  }, [filterState, query]);
+  }, []);
+
+  const filteredToDos = useMemo(() => {
+    return getPreparedToDosList(todos || [], { query, filterState });
+  }, [todos, filterState, query]);
 
   return (
     <>
@@ -66,6 +76,8 @@ export const App: React.FC = () => {
               <TodoFilter
                 onFilterState={setFilterState}
                 onQueryChange={setQuery}
+                query={query}
+                onReset={() => setQuery('')}
               />
             </div>
 
@@ -73,7 +85,11 @@ export const App: React.FC = () => {
               {loading ? (
                 <Loader />
               ) : (
-                <TodoList todos={todos || []} onToDoSelect={setSelectedToDo} />
+                <TodoList
+                  todos={filteredToDos || []}
+                  selectedToDo={selectedToDo}
+                  onFocus={setSelectedToDo}
+                />
               )}
             </div>
           </div>
@@ -81,10 +97,7 @@ export const App: React.FC = () => {
       </div>
 
       {selectedToDo && (
-        <TodoModal
-          todo={selectedToDo}
-          onWindowClose={() => setSelectedToDo(null)}
-        />
+        <TodoModal todo={selectedToDo} onFocus={setSelectedToDo} />
       )}
     </>
   );
