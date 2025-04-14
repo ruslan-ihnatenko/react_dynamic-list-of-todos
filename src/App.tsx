@@ -12,7 +12,7 @@ import { getTodos } from './api';
 
 interface FilterOptions {
   query: string;
-  filterState: boolean | null; // Assuming filterState is a boolean
+  filterState: boolean | null;
 }
 
 function getPreparedToDosList(
@@ -49,20 +49,15 @@ export const App: React.FC = () => {
     setLoading(true);
 
     getTodos()
-      .then(fetchedTodos =>
-        getPreparedToDosList(fetchedTodos, { query, filterState }),
-      )
       .then(preparedTodos => setTodos(preparedTodos))
       .catch(() => {
         setErrorMessage('Try again later');
-        // eslint-disable-next-line no-console
-        console.error(errorMessage);
       })
       .finally(() => setLoading(false));
   }, []);
 
   const filteredToDos = useMemo(() => {
-    return getPreparedToDosList(todos || [], { query, filterState });
+    return getPreparedToDosList(todos, { query, filterState });
   }, [todos, filterState, query]);
 
   return (
@@ -71,6 +66,13 @@ export const App: React.FC = () => {
         <div className="container">
           <div className="box">
             <h1 className="title">Todos:</h1>
+
+            {/* Show error message if it exists */}
+            {errorMessage && (
+              <div className="notification is-danger" data-cy="errorMessage">
+                {errorMessage}
+              </div>
+            )}
 
             <div className="block">
               <TodoFilter
